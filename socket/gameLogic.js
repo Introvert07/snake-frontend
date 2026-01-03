@@ -1,0 +1,1 @@
+export const HUDDLES = [12, 25, 38, 50, 62, 75, 88, 95]; // Snake positions
