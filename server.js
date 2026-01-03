@@ -6,21 +6,24 @@ import Question from './models/Question.js';
 import User from './models/User.js';
 
 dotenv.config();
-connectDB();
+
 const app = express();
 
-// --- UPDATED CORS CONFIGURATION ---
+// --- DATABASE CONNECTION ---
+// Connect once at startup
+connectDB();
+
+// --- CORS CONFIGURATION ---
 const allowedOrigins = [
   'https://snake-frontend-h68j.vercel.app', // Your specific frontend
+  'https://snake-frontend-rust.vercel.app', // Your other Vercel frontend
   'http://localhost:5173',                  // Local development
   'http://localhost:3000'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.indexOf(origin) === -1) {
       return callback(new Error('CORS policy: This origin is not allowed'), false);
     }
@@ -38,7 +41,6 @@ app.use(express.json());
 // 1. Get a random Python question
 app.get('/api/question', async (req, res) => {
     try {
-        await connectDB(); 
         const count = await Question.countDocuments();
         if (count === 0) return res.status(404).json({ error: "No questions found." });
         
@@ -53,7 +55,6 @@ app.get('/api/question', async (req, res) => {
 // 2. Save score
 app.post('/api/save-score', async (req, res) => {
     try {
-        await connectDB(); 
         const { username, timeTaken } = req.body;
         
         if (!username || timeTaken === undefined) {
@@ -70,12 +71,14 @@ app.post('/api/save-score', async (req, res) => {
 // 3. Health Check
 app.get('/api/health', (req, res) => res.status(200).json({ status: "System Online" }));
 
-// Export for Vercel
+// --- SERVER INITIALIZATION ---
+// Render/Heroku/Railway use process.env.PORT
+const PORT = process.env.PORT || 4000;
 
+// This must run on Render to avoid 'Port scan timeout'
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
 
-// Local development support
-if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 4000;
-    app.listen(PORT, () => console.log(`🚀 Local server running on port ${PORT}`));
-}
+// Export for Vercel compatibility
 export default app;
