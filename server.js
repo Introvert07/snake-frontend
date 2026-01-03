@@ -6,7 +6,7 @@ import Question from './models/Question.js';
 import User from './models/User.js';
 
 dotenv.config();
-
+connectDB();
 const app = express();
 
 // --- UPDATED CORS CONFIGURATION ---
@@ -71,10 +71,11 @@ app.post('/api/save-score', async (req, res) => {
 app.get('/api/health', (req, res) => res.status(200).json({ status: "System Online" }));
 
 // Export for Vercel
-export default app;
+
 
 // Local development support
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => console.log(`🚀 Local server running on port ${PORT}`));
 }
+export default app;
