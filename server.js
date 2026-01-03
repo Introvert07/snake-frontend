@@ -9,16 +9,38 @@ dotenv.config();
 
 const app = express();
 
-// Important for Vercel: Middleware
-app.use(cors());
+// --- UPDATED CORS CONFIGURATION ---
+const allowedOrigins = [
+  'https://snake-frontend-h68j.vercel.app', // Your specific frontend
+  'http://localhost:5173',                  // Local development
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS policy: This origin is not allowed'), false);
+    }
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 app.use(express.json());
+
+// --- ROUTES ---
 
 // 1. Get a random Python question
 app.get('/api/question', async (req, res) => {
     try {
-        await connectDB(); // Ensure DB is connected for this specific request
+        await connectDB(); 
         const count = await Question.countDocuments();
-        if (count === 0) return res.status(404).json({ error: "No questions found. Seed the DB!" });
+        if (count === 0) return res.status(404).json({ error: "No questions found." });
         
         const random = Math.floor(Math.random() * count);
         const question = await Question.findOne().skip(random);
@@ -28,14 +50,14 @@ app.get('/api/question', async (req, res) => {
     }
 });
 
-// 2. Save the final result (Aligned endpoint with frontend)
+// 2. Save score
 app.post('/api/save-score', async (req, res) => {
     try {
         await connectDB(); 
         const { username, timeTaken } = req.body;
         
         if (!username || timeTaken === undefined) {
-            return res.status(400).json({ error: "Missing username or timeTaken" });
+            return res.status(400).json({ error: "Missing data" });
         }
 
         const newRecord = await User.create({ username, timeTaken });
@@ -45,8 +67,8 @@ app.post('/api/save-score', async (req, res) => {
     }
 });
 
-// 3. Health Check (Good for testing deployment)
-app.get('/api/health', (req, res) => res.send("System Online"));
+// 3. Health Check
+app.get('/api/health', (req, res) => res.status(200).json({ status: "System Online" }));
 
 // Export for Vercel
 export default app;
