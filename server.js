@@ -15,6 +15,7 @@ connectDB();
 
 // --- CORS CONFIGURATION ---
 const allowedOrigins = [
+  'https://fluxsnakegame.vercel.app',
   'https://snake-frontend-h68j.vercel.app', // Your specific frontend
   'https://snake-frontend-rust.vercel.app', // Your other Vercel frontend
   'http://localhost:5173',                  // Local development
